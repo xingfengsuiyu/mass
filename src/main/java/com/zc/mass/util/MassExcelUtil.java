@@ -21,6 +21,10 @@ public class MassExcelUtil {
         super();
     }
 
+    /**
+     * @param inputStream
+     * @return 返回获取的工资条数据
+     */
     public static List<Map<String, Object>> disposeExcel(InputStream inputStream) {
         Workbook wb = null;
         try {
@@ -30,21 +34,24 @@ public class MassExcelUtil {
         }
         Sheet sheet = wb.getSheetAt(0);
         int lastRowNum = sheet.getLastRowNum() + 1;
-        int lastCellNum = 0;
-        Row row = null;
-        int headerLine = getHeaderLine(sheet, lastRowNum,lastCellNum);
-        String header[][] = readerHeader(sheet, headerLine, lastCellNum);
+        int headerLine = getHeaderLine(sheet, lastRowNum);
+        String header[][] = readerHeader(sheet, headerLine);
         String headerData[] = tidyUpHeader(header, headerLine);
-        List<Map<String, Object>> listmap = getMassData(headerData, sheet,headerLine, lastRowNum, lastCellNum);
+        List<Map<String, Object>> listmap = getMassData(headerData, sheet,headerLine, lastRowNum);
         return listmap;
     }
 
 
-    private static int getHeaderLine(Sheet sheet, int lastRowNum, int lastCellNum) {
+    /**
+     * @param sheet
+     * @param lastRowNum
+     * @return 根据邮箱判断获取头部数据的行数
+     */
+    private static int getHeaderLine(Sheet sheet, int lastRowNum) {
         String regex = "\\w+(\\.\\w)*@\\w+(\\.\\w{2,3}){1,3}";
         for (int i = 0; i < lastRowNum; i++) {
            Row row = sheet.getRow(i);
-            lastCellNum = row.getLastCellNum();
+           int  lastCellNum = row.getLastCellNum();
             for (int j = 0; j < lastCellNum; j++) {
                 String cellValue = ExcelUtil.getCellValue(row.getCell(j));
                 if (cellValue.matches(regex)) {
@@ -52,13 +59,19 @@ public class MassExcelUtil {
                 }
             }
         }
-        return lastRowNum;
+        return 0;
     }
-    private static String[][] readerHeader(Sheet sheet, int headerLine, int lastCellNum) {
+
+    /**
+     * @param sheet
+     * @param headerLine
+     * @return 读取每一行的头部数据
+     */
+    private static String[][] readerHeader(Sheet sheet, int headerLine) {
         String str[][] = new String[headerLine][sheet.getNumMergedRegions()];
         for (int i = 0; i < headerLine; i++) {
             Row   row = sheet.getRow(i);
-            lastCellNum = row.getLastCellNum();
+            int lastCellNum = row.getLastCellNum();
             for (int j = 0; j < lastCellNum; j++) {
                 if (ExcelUtil.isMergedRegion(sheet, i, j)) {
                     str[i][j] = ExcelUtil.getMergedRegionValue(sheet, i, j);
@@ -70,6 +83,12 @@ public class MassExcelUtil {
         return str;
     }
 
+
+    /**
+     * @param header
+     * @param headerLine
+     * @return 整理头部数据
+     */
     private static String[] tidyUpHeader(String[][] header, int headerLine) {
         String headerData[] = new String[header[header.length - 1].length];
         String cell[] = header[header.length - 1];
@@ -87,13 +106,20 @@ public class MassExcelUtil {
         return headerData;
     }
 
-    private static List<Map<String, Object>> getMassData(String[] headerData, Sheet sheet, int headerLine, int lastRowNum, int lastCellNum) {
+    /**
+     * @param headerData
+     * @param sheet
+     * @param headerLine
+     * @param lastRowNum
+     * @return  整理要发送的工资条数据，并且发送工资条
+     */
+    private static List<Map<String, Object>> getMassData(String[] headerData, Sheet sheet, int headerLine, int lastRowNum) {
         List<Map<String, Object>> listmap = new ArrayList<>();
         Map<String, Object> map = null;
         StringBuilder stringBuilder = null;
         for (int i = headerLine; i < lastRowNum; i++) {
           Row  row = sheet.getRow(i);
-            lastCellNum = row.getLastCellNum();
+            int  lastCellNum = row.getLastCellNum();
             map = new LinkedHashMap<>();
             stringBuilder = new StringBuilder();
             for (int j = 0; j < lastCellNum; j++) {
@@ -116,7 +142,7 @@ public class MassExcelUtil {
         mailInfo.setReviceMailAddr(reviceMailAddr);
         mailInfo.setContent(content);
         mailInfo.setSubject("测试");
-        mailInfo.setSendMailAddr("erp02@allove.com");
+        mailInfo.setSendMailAddr("******");
         SimpleMailSender simpleMailSender =  new SimpleMailSender(mailInfo);
         Thread thread = new Thread(simpleMailSender);
         thread.start();

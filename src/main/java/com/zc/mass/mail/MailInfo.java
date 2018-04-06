@@ -6,8 +6,8 @@ public class MailInfo {
     //发送邮件服务器IP和端口
     private String mailServerHost;
     private String mailServerPort;
-    private String username = "erp02@allove.com";
-    private String password = "Zc8737875";
+    private String username = "******";
+    private String password = "******";
     private String sendMailAddr;
     private String reviceMailAddr;
     private String subject;
